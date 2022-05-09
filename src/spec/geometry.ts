@@ -36,7 +36,8 @@ export type ChannelTypes =
   | 'size'
   | 'tooltip'
   | 'title'
-  | 'key';
+  | 'key'
+  | 'groupKey';
 
 export type BaseGeometry<
   T extends GeometryTypes,

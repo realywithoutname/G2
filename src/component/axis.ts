@@ -164,6 +164,7 @@ export const Axis: GCC<AxisOptions> = (options) => {
         },
         axisLine: {
           style: {
+            lineWidth: 0,
             strokeOpacity: 0,
           },
         },

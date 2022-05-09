@@ -1,3 +1,4 @@
+import { convertToPath, Path } from '@antv/g';
 import { mapObject } from '../utils/array';
 import { Container } from '../utils/container';
 import { copyAttributes, error, defined, composeAsync } from '../utils/helper';
@@ -63,6 +64,7 @@ export async function plot<T extends G2ViewTree>(
   const views = [];
   const viewOptions = new Map();
   const discovered: G2ViewTree[] = [options];
+  const animations = [];
 
   while (discovered.length) {
     const node = discovered.shift();
@@ -80,7 +82,11 @@ export async function plot<T extends G2ViewTree>(
       // data to produce more nodes based on it.
       const transformedNode = await applyTransform(node, library);
       const nodes = composition(transformedNode);
-      discovered.push(...nodes);
+      if (Array.isArray(nodes)) {
+        discovered.push(...nodes);
+      } else {
+        animations.push(nodes());
+      }
     }
   }
 
@@ -119,6 +125,21 @@ export async function plot<T extends G2ViewTree>(
           }),
       (exit) => exit.remove(),
     );
+
+  const { width, height } = options;
+  for (const animation of animations) {
+    setTimeout(async () => {
+      for (const keyframe of animation) {
+        await keyframe((node) => {
+          const sizedNode = { width, height, ...node };
+          plot(sizedNode, selection, library);
+        });
+        await new Promise((resolve) => {
+          setTimeout(resolve, 100);
+        });
+      }
+    }, 0);
+  }
 }
 
 /**
@@ -215,7 +236,8 @@ async function initializeView(
     Object.assign(scaleInstance, markScaleInstance);
     const value = Container.of<MarkChannel>(channels)
       .call(applyScale, markScaleInstance)
-      .call(applyAnimationFunction, index, animate, defaultShape, library)
+      .call(applyEnterFunction, index, animate, defaultShape, library)
+      .call(applyUpdateFunction, index, animate, defaultShape, library)
       .call(applyShapeFunction, index, style, defaultShape, library)
       .value();
 
@@ -367,9 +389,26 @@ async function plotView(
       .join(
         (enter) =>
           enter
-            .append(({ shape, points, ...v }) =>
-              shape(points, v, coordinate, theme),
-            )
+            .append(({ shape, points, ...v }) => {
+              const node = shape(points, v, coordinate, theme);
+              const d = convertToPath(node);
+              const path = new Path({ style: { path: d } });
+              copyAttributes(path, node);
+              // path.style.path = d;
+              // path.style.fill = node.style.fill;
+              // path.style.transform = node.style.transform;
+              // console.log(node.nodeName);
+              // if (node.nodeName === 'circle') {
+              //   // path.style.x = node.style.x;
+              //   // path.style.y = node.style.y;
+              //   // path.style.anchor = node.style.anchor;
+              // }else{
+              //   path.style.x = 0;
+              //   path.style.y = 0;
+
+              // }
+              return path;
+            })
             .attr('className', 'element')
             .each(function ({ enterType: animate, ...v }) {
               const {
@@ -381,9 +420,19 @@ async function plotView(
               animate(this, style, coordinate, theme);
             }),
         (update) =>
-          update.each(function ({ shape, points, ...v }) {
+          update.each(function ({ shape, points, updateType: animate, ...v }) {
             const node = shape(points, v, coordinate, theme);
-            copyAttributes(this, node);
+            // copyAttributes(this, node);
+            const d = convertToPath(node);
+            const path = new Path({ style: { path: d } });
+            copyAttributes(path, node);
+            const {
+              updateDelay: delay,
+              updateDuration: duration,
+              updateEasing: easing,
+            } = v;
+            const style = { delay, duration, easing, to: path };
+            animate(this, style, coordinate, theme);
           }),
       );
   }
@@ -448,7 +497,7 @@ function applyMainLayers(selection: Selection, marks: G2Mark[]) {
     );
 }
 
-function applyAnimationFunction(
+function applyEnterFunction(
   value: Record<string, any>,
   index: number[],
   animate: G2AnimationOptions,
@@ -476,6 +525,36 @@ function applyAnimationFunction(
         [],
       );
   return { ...value, enterType: animationFunctions };
+}
+
+function applyUpdateFunction(
+  value: Record<string, any>,
+  index: number[],
+  animate: G2AnimationOptions,
+  defaultShape: string,
+  library: G2Library,
+) {
+  const [, createShape] = useLibrary<G2ShapeOptions, ShapeComponent, Shape>(
+    'shape',
+    library,
+  );
+  const [useAnimation] = useLibrary<
+    G2AnimationOptions,
+    AnimationComponent,
+    Animation
+  >('animation', library);
+
+  const { updateType: UT } = value;
+  const { defaultEnterAnimation } = createShape(defaultShape).props;
+  const { update = {} } = animate;
+  const { type = defaultEnterAnimation } = update;
+  const animationFunctions = Array.isArray(UT)
+    ? UT.map((type) => useAnimation({ ...update, type }))
+    : index.reduce(
+        (UT, i) => ((UT[i] = useAnimation({ ...update, type })), UT),
+        [],
+      );
+  return { ...value, updateType: animationFunctions };
 }
 
 function applyShapeFunction(

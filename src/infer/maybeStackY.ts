@@ -15,8 +15,11 @@ const inferStatistic: InferValue['transform'] = (indexedValue, statistic) => {
 
   // StackY need both x and y channel values, so pass value with empty x or y channel.
   const { index, value } = indexedValue;
-  const { x: X, y: Y } = value;
+  const { x: X, y: Y, series: S } = value;
   if (X === undefined || Y === undefined) return statistic;
+
+  // With defined series means dodgeX inferred.
+  if (S !== undefined) return statistic;
 
   // Group mark index by channel x.
   const X1 = X.map(firstOf);

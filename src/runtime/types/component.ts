@@ -268,7 +268,11 @@ export type InteractorComponent<O = Record<string, unknown>> = G2BaseComponent<
   O
 >;
 
-export type Composition = (children: G2ViewTree) => G2ViewTree[];
+export type Composition = (
+  children: G2ViewTree,
+) =>
+  | G2ViewTree[]
+  | (() => Generator<(callback: any) => Promise<void>, void, unknown>);
 export type CompositionComponent<O = Record<string, unknown>> = G2BaseComponent<
   Composition,
   O

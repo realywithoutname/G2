@@ -24,7 +24,7 @@ export const ScaleInY: AC<ScaleInYOptions> = (options) => {
     // which is still visible.
     const keyframes = [
       { transform, fillOpacity: 0, strokeOpacity: 0, opacity: 0 },
-      { transform, fillOpacity: 1, strokeOpacity: 1, opacity: 1, offset: 0.01 },
+      { transform, offset: 0.01 },
       { transform: 'scale(1, 1)' },
     ];
 

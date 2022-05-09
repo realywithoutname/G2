@@ -57,7 +57,7 @@ import {
   Subset,
 } from '../transform';
 import { AxisX, AxisY, LegendCategory, LegendContinuous } from '../component';
-import { ScaleInY, FadeIn } from '../animation';
+import { ScaleInY, FadeIn, MagicMove } from '../animation';
 import {
   ElementActive,
   Tooltip,
@@ -71,7 +71,7 @@ import {
   Plot,
 } from '../action';
 import { MousePosition, TouchPosition } from '../interactor';
-import { Layer, Flex, Mark, View, Rect } from '../composition';
+import { Layer, Flex, Mark, View, Rect, Keyframe } from '../composition';
 import { Pack } from '../adjust';
 
 export function createLibrary(): G2Library {
@@ -140,6 +140,7 @@ export function createLibrary(): G2Library {
     'component.legendContinuous': LegendContinuous,
     'animation.scaleInY': ScaleInY,
     'animation.fadeIn': FadeIn,
+    'animation.magicMove': MagicMove,
     'interaction.elementActive': ElementActive,
     'interaction.tooltip': Tooltip,
     'interaction.fisheye': FisheyeInteraction,
@@ -155,6 +156,7 @@ export function createLibrary(): G2Library {
     'composition.mark': Mark,
     'composition.view': View,
     'composition.rect': Rect,
+    'composition.keyframe': Keyframe,
     'adjust.pack': Pack,
   };
 }

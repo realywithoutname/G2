@@ -10,7 +10,8 @@ export type Node =
   | ViewComposition
   | LayerComposition
   | FlexComposition
-  | RectComposition;
+  | RectComposition
+  | KeyframeComposition;
 
 export type MarkComposition = Geometry;
 
@@ -76,4 +77,12 @@ export type RectComposition = {
   shareData?: boolean;
   shareSize?: boolean;
   children?: Node[] | ((facet: FacetContext) => Node);
+};
+
+export type KeyframeComposition = {
+  type?: 'keyframe';
+  duration?: number;
+  iterationCount?: 'infinite' | number;
+  direction?: 'normal' | 'reverse' | 'alternate' | 'reverse-alternate';
+  children?: Node[];
 };

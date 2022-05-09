@@ -32,7 +32,7 @@ describe('render', () => {
   it('render({...} renders chart according to specified options', (done) => {
     const chart = render<G2Spec>(
       {
-        type: 'interval',
+        type: 'point',
         data: [
           { genre: 'Sports', sold: 275 },
           { genre: 'Strategy', sold: 115 },
