@@ -134,7 +134,7 @@ genji.preview([
   },
   {
     title: 'Vector',
-    path: '/link#basic-vector',
+    path: '/vector#basic-vector',
     thumbnail:
       'https://gw.alipayobjects.com/mdn/rms_dfc253/afts/img/A*QGaxR6L6w_sAAAAAAAAAAAAAARQnAQ',
   },

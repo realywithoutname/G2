@@ -2,17 +2,16 @@
 
 ## Basic Vector
 
+```js
+data = genji.fetchJSON('https://gw.alipayobjects.com/os/antfincdn/F5VcgnqRku/wind.json')
+```
+
 ```js | dom
 G2.render({
   width: 800,
   height: 600,
   type: 'vector',
-  transform: [
-    {
-      type: 'fetch',
-      url: 'https://gw.alipayobjects.com/os/antfincdn/F5VcgnqRku/wind.json',
-    },
-  ],
+  data,
   encode: {
     x: 'longitude',
     y: 'latitude',
@@ -23,6 +22,12 @@ G2.render({
   scale: {
     color: { guide: null },
     size: { range: [6, 20] },
+  },
+  style: {
+    arrow: {
+      // arrow size is 40% of the  vector length (encode by `size`)
+      size: '40',
+    },
   },
 });
 ```
