@@ -6,7 +6,7 @@ import { Channel } from '../runtime';
 export function baseChannels(): Channel[] {
   return [
     { name: 'color' },
-    { name: 'shape' },
+    // { name: 'shape' },
     { name: 'enterType' },
     { name: 'enterDelay', scaleName: 'enter' },
     { name: 'enterDuration', scaleName: 'enter' },

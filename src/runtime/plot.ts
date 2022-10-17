@@ -1,6 +1,7 @@
 import { DisplayObject, IAnimation as GAnimation } from '@antv/g';
-import { upperFirst } from '@antv/util';
+import { deepMix, upperFirst } from '@antv/util';
 import { format } from 'd3-format';
+import { group } from 'd3-array';
 import { Vector2 } from '@antv/coord';
 import { mapObject } from '../utils/array';
 import {
@@ -45,7 +46,7 @@ import {
   LabelTransformComponent,
   LabelTransform,
 } from './types/component';
-import { MarkComponent, Mark, MarkChannel } from './types/mark';
+import { MarkComponent, Mark } from './types/mark';
 import {
   G2ViewDescriptor,
   G2MarkState,
@@ -57,7 +58,7 @@ import { initializeMark } from './mark';
 import { inferComponent, renderComponent } from './component';
 import { computeLayout, placeComponents } from './layout';
 import { createCoordinate } from './coordinate';
-import { applyScale, syncFacetsScales, useRelation } from './scale';
+import { applyScale, inferScale, syncFacetsScales, useRelation } from './scale';
 import { applyDataTransform } from './transform';
 import {
   MAIN_LAYER_CLASS_NAME,
@@ -247,12 +248,122 @@ function createUpdateView(
   };
 }
 
+function inferGuideType(channel, scale, options, coordinate) {
+  const { type } = options;
+  if (type) return type;
+  if (channel === 'x') return 'axisX';
+  if (channel === 'y') return 'axisY';
+  if (channel === 'position') return 'axisParallel';
+}
+
+function inferGuides(scales, options, library) {
+  const channels = ['x', 'y', 'color', 'size', 'position'];
+  const guidedScales = scales.filter(
+    ({ channel, guide = {} }) => channels.includes(channel) && guide,
+  );
+  const scaleGroups = Array.from(
+    group(guidedScales, ({ channel, independent = false }) => {
+      if (channel !== 'color' || channel !== 'size') return channel;
+      if (independent) return channel;
+      return 'color';
+    }).values(),
+  );
+  const { coordinate = [] } = options;
+  return scaleGroups.flatMap((scales) => {
+    const channel = scales.map((d) => d.channel).join('*');
+    const { guide = {}, type } = scales[0];
+    const guidesOptions = Array.isArray(guide) ? guide : [guide];
+    return guidesOptions.map((guideOptions) => ({
+      ...guideOptions,
+      channel,
+      type: inferGuideType(channel, type, guideOptions, coordinate),
+    }));
+  });
+}
+
+function inferLabel(options) {
+  const { marks } = options;
+  const labels = marks
+    .filter((d) => d.labels)
+    .map(({ labels, key }) => ({ key, labels }));
+  return { type: labels.length ? 'label' : null, labels };
+}
+
 async function initializeView(
   options: G2View,
   library: G2Library,
 ): Promise<[G2ViewDescriptor, G2ViewTree[]]> {
-  const state = await initializeMarks(options, library);
-  return initializeState(state, options, library);
+  const [useMark] = useLibrary<G2MarkOptions, MarkComponent, Mark>(
+    'mark',
+    library,
+  );
+  const { marks, coordinate = [] } = options;
+  const [useTheme] = useLibrary('theme', library);
+  const theme = useTheme(inferTheme(options.theme));
+
+  // Initialize marks.
+  const markState = new Map();
+  const setMarkState = async (marks) => {
+    for (const markOptions of marks) {
+      const mark = useMark(markOptions);
+      const markAndState = await mark.initialize?.(markOptions);
+      if (markAndState) {
+        const [initializedMark, state] = markAndState;
+        markState.set(initializedMark, state);
+      } else {
+        markState.set(mark, null);
+      }
+    }
+  };
+
+  await setMarkState(marks);
+
+  // Infer scale for each channel.
+  const scaleChannels = group(
+    Array.from(markState.values()).flatMap((d) => d.channels),
+    (d) => d.scaleKey,
+  );
+  const scales = [];
+  for (const [name, channels] of scaleChannels) {
+    const scaleOptions = channels.reduce(
+      (total, { scale }) => deepMix(total, scale),
+      {},
+    );
+    const values = channels.flatMap((d) => d.values);
+    const scale = inferScale(
+      name,
+      values,
+      scaleOptions,
+      coordinate,
+      theme,
+      library,
+    );
+    scales.push(scale);
+    channels.forEach((channel) => (channel.scale = scale));
+  }
+
+  // Initialize guides.
+  const guides = inferGuides(scales, options, library);
+  const label = inferLabel(options);
+  await setMarkState([...guides, label].filter((d) => d.type));
+  // for (const markOptions of [...guides, label].filter((d) => d.type)) {
+  //   const mark = useMark(markOptions);
+  //   const [initializedMark, state] = await mark.initialize(markOptions);
+  //   markState.set(initializedMark, state);
+  // }
+
+  // computeLayout
+
+  // inferComponents
+  // computeDimensions
+  // initializeCoordinate
+  // plotMark
+  for (const [mark, state] of Object.entries(markState)) {
+    const index = state?.index;
+    mark.render(index, scales, values, coordinate, theme);
+  }
+  // const state = await initializeMarks(options, library);
+  // return initializeState(state, options, library);
 }
 
 async function initializeMarks(

@@ -5,7 +5,11 @@ import { ScaleComponent as SC } from '../runtime';
 export type IdentityOptions = Omit<IdentityScaleSpec, 'type'>;
 
 export const Identity: SC<IdentityOptions> = (options) => {
-  return new IdentityScale(options);
+  const { library, ...rest } = options;
+  return () => ({
+    constructor: IdentityScale,
+    ...rest,
+  });
 };
 
 Identity.props = {};

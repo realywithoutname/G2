@@ -21,7 +21,7 @@ export function useLibrary<
   };
   const use = (options: O) => {
     const { type, ...rest } = options;
-    return create(type)({ ...rest });
+    return create(type)({ ...rest, library });
   };
   return [use, create];
 }

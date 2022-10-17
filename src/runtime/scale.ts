@@ -23,32 +23,41 @@ import { useLibrary } from './library';
 import { MarkChannel } from './types/mark';
 
 export function inferScale(
-  channel: Channel,
+  name: string,
+  values: Channel,
   options: G2ScaleOptions,
   coordinate: G2CoordinateOptions[],
-  shapes: string[],
+  // shapes: string[],
   theme: G2Theme,
-  nameScale: Map<string, G2ScaleOptions>,
+  // nameScale: Map<string, G2ScaleOptions>,
   library: G2Library,
 ) {
-  const { scaleName } = channel;
-  const potentialScale = inferPotentialScale(
-    channel,
-    options,
-    coordinate,
-    shapes,
-    theme,
-    library,
-  );
-  const { independent } = potentialScale;
-  if (independent) return potentialScale;
-  if (!nameScale.has(scaleName)) {
-    nameScale.set(scaleName, potentialScale);
-    return potentialScale;
-  }
-  const scale = nameScale.get(scaleName);
-  syncScale(scaleName, scale, potentialScale);
-  return scale;
+  const [useScale] = useLibrary('scale', library);
+  const type = inferScaleType(name, values, options);
+  const createScale = useScale({ ...options, type });
+  const scale = createScale(name, values, coordinate, theme);
+  console.log(scale);
+
+  return { ...scale, channel: name, type };
+
+  // const { scaleName } = channel;
+  // const potentialScale = inferPotentialScale(
+  //   channel,
+  //   options,
+  //   coordinate,
+  //   shapes,
+  //   theme,
+  //   library,
+  // );
+  // const { independent } = potentialScale;
+  // if (independent) return potentialScale;
+  // if (!nameScale.has(scaleName)) {
+  //   nameScale.set(scaleName, potentialScale);
+  //   return potentialScale;
+  // }
+  // const scale = nameScale.get(scaleName);
+  // syncScale(scaleName, scale, potentialScale);
+  // return scale;
 }
 
 export function applyScale(
@@ -189,24 +198,26 @@ function inferPotentialScale(
 
 // @todo More accurate inference for different cases.
 function inferScaleType(
-  channel: Channel,
+  name,
+  values: Channel,
   options: G2ScaleOptions,
 ): string | ScaleComponent {
-  const { scale, name, value, visual } = channel;
+  // if (options.type) return options.type;
+  // const { scale, name, value, visual } = channel;
   const { type, domain, range } = options;
-  if (visual) return 'identity';
+  // if (visual) return 'identity';
   if (type !== undefined) return type;
-  if (scale !== undefined) return scale;
-  if (isObject(value)) return 'identity';
+  // if (scale !== undefined) return scale;
+  // if (isObject(value)) return 'identity';
   if (typeof range === 'string') return 'linear';
   if ((domain || range || []).length > 2) return asOrdinalType(name);
   if (domain !== undefined) {
     if (isOrdinal(domain)) return asOrdinalType(name);
-    if (isTemporal(value)) return 'time';
+    if (isTemporal(values)) return 'time';
     return 'linear';
   }
-  if (isOrdinal(value)) return asOrdinalType(name);
-  if (isTemporal(value)) return 'time';
+  if (isOrdinal(values)) return asOrdinalType(name);
+  if (isTemporal(values)) return 'time';
   return 'linear';
 }
 
@@ -471,23 +482,32 @@ function inferRangeQ(name: string, palette: Palette): Primitive[] {
 }
 
 function isOrdinal(values: Primitive[]): boolean {
-  return values.some((v) => {
-    const type = typeof v;
+  // return values.some((v) => {
+  //   const type = typeof v;
+  //   return type === 'string' || type === 'boolean';
+  // });
+  return some(values, (d) => {
+    const type = typeof d;
     return type === 'string' || type === 'boolean';
   });
 }
 
 function isTemporal(values: Primitive[]): boolean {
-  return values.some((v) => {
-    return v instanceof Date;
-  });
+  return some(values, (d) => d instanceof Date);
 }
 
-function isObject(values: Primitive[]): boolean {
-  return values.some((v) => {
-    return typeof v === 'object' && !(v instanceof Date) && v !== null;
-  });
+function some(values, callback) {
+  for (const V of values) {
+    if (V.some(callback)) return true;
+  }
+  return false;
 }
+
+// function isObject(values: Primitive[]): boolean {
+//   return values.some((v) => {
+//     return typeof v === 'object' && !(v instanceof Date) && v !== null;
+//   });
+// }
 
 function isQuantitative(name: string): boolean {
   return (
