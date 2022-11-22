@@ -1,4 +1,5 @@
 export { Category10 } from './category10';
+export { NewCategory } from './newCategory';
 export { Category20 } from './category20';
 export { SequentialBlue } from './sequentialBlue';
 export { SequentialDarkBlue } from './sequentialDarkBlue';
@@ -20,6 +21,7 @@ export { DivergingGreenRed } from './divergingGreenRed';
 export { DivergingRedPurple } from './divergingRedPurple';
 
 export type { Category10Options } from './category10';
+export type { NewCategoryOptions } from './newCategory';
 export type { Category20Options } from './category20';
 export type { SequentialBlueOptions } from './sequentialBlue';
 export type { SequentialDarkBlueOptions } from './sequentialDarkBlue';

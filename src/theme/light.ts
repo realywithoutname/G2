@@ -31,11 +31,11 @@ const STROKE_COLOR = '#416180';
  * Default theme.
  */
 export const Light: TC<LightOptions> = (options) => {
-  const DEFAULT_COLOR = '#5B8FF9';
+  const DEFAULT_COLOR = '#1677FF';
   const defaultOptions: Theme = {
     defaultColor: DEFAULT_COLOR,
-    defaultCategory10: 'category10',
-    defaultCategory20: 'category20',
+    defaultCategory10: 'newCategory',
+    defaultCategory20: 'newCategory',
     defaultSize: 1,
     elementActiveStroke: BLACK_COLORS[100],
     enter: {
@@ -54,6 +54,7 @@ export const Light: TC<LightOptions> = (options) => {
         fill: '',
         strokeOpacity: 1,
         lineWidth: 1,
+        lineCap: 'round',
       },
     },
     point: {
@@ -84,11 +85,13 @@ export const Light: TC<LightOptions> = (options) => {
     interval: {
       rect: {
         fillOpacity: 0.95,
+        radius: 2,
       },
       hollow: {
         fill: '',
         strokeOpacity: 1,
         lineWidth: 2,
+        radius: 2,
       },
     },
     area: {
@@ -105,17 +108,32 @@ export const Light: TC<LightOptions> = (options) => {
     cell: {
       rect: {
         fillOpacity: 0.95,
+        radius: 2,
       },
       hollow: {
         fill: '',
         strokeOpacity: 1,
         lineWidth: 2,
+        radius: 2,
+      },
+    },
+    rect: {
+      rect: {
+        fillOpacity: 0.95,
+        radius: 2,
+      },
+      hollow: {
+        fill: '',
+        strokeOpacity: 1,
+        lineWidth: 2,
+        radius: 2,
       },
     },
     link: {
       link: {
         fill: '',
         strokeOpacity: 1,
+        lineCap: 'round',
       },
     },
     vector: {
@@ -164,6 +182,7 @@ export const Light: TC<LightOptions> = (options) => {
         stroke: STROKE_COLOR,
         strokeOpacity: 0.45,
         lineWidth: 1,
+        lineCap: 'round',
       },
     },
     lineY: {
@@ -171,6 +190,7 @@ export const Light: TC<LightOptions> = (options) => {
         stroke: STROKE_COLOR,
         strokeOpacity: 0.45,
         lineWidth: 1,
+        lineCap: 'round',
       },
     },
     rangeX: {
@@ -178,6 +198,7 @@ export const Light: TC<LightOptions> = (options) => {
         fill: STROKE_COLOR,
         fillOpacity: 0.15,
         lineWidth: 0,
+        radius: 2,
       },
     },
     rangeY: {
@@ -185,6 +206,7 @@ export const Light: TC<LightOptions> = (options) => {
         fill: STROKE_COLOR,
         fillOpacity: 0.15,
         lineWidth: 0,
+        radius: 2,
       },
     },
     connector: {

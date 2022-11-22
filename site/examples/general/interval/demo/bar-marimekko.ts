@@ -25,7 +25,8 @@ chart
   .encode('y', 'value')
   .encode('color', 'segment')
   .axis('y', false)
-  .scale('x', { paddingOuter: 0, paddingInner: 0.01 })
+  .scale('x', { paddingOuter: 0, paddingInner: 0 })
+  .scale('y', { paddingInner: 0.01 })
   .label({
     text: 'segment',
     x: 5,
@@ -43,6 +44,8 @@ chart
     dy: '1.5em',
     fontSize: 10,
     fill: '#fff',
-  });
+  })
+  .style('stroke', '#fff')
+  .style('innerRadius', 2);
 
 chart.render();
