@@ -261,9 +261,6 @@ function inferStyle(
   labelDirection: 'negative' | 'positive';
   labelTransform?: string;
   tickDirection: 'negative' | 'positive';
-  showLabel?: boolean;
-  showTick?: boolean;
-  showLine?: boolean;
   gridLength: number;
   gridDirection: 'negative' | 'positive';
   gridConnect?: string;
@@ -271,6 +268,11 @@ function inferStyle(
   gridCenter?: Vector2;
   gridControlAngles?: number[];
   girdClosed?: true;
+  // override user defined.
+  showLabel?: boolean;
+  showTick?: boolean;
+  showLine?: boolean;
+  labelAutoRotate?: boolean;
 } {
   const gridLength = getGridLength(position, coordinate);
   const [, cy] = coordinate.getCenter();
@@ -346,6 +348,7 @@ function inferStyle(
       gridCenter: [bbox.x, cy + bbox.y],
       gridControlAngles: [90, 180, 360],
       girdClosed: true,
+      labelAutoRotate: false,
     };
   }
 
@@ -418,6 +421,10 @@ const ArcAxis = (options) => {
   };
 };
 
+function useDefined(value, alternate) {
+  return value === undefined ? alternate : value;
+}
+
 const LinearAxis: GCC<AxisOptions> = (options) => {
   const {
     order,
@@ -431,7 +438,6 @@ const LinearAxis: GCC<AxisOptions> = (options) => {
     tickFilter,
     tickMethod,
     labelAutoHide = false,
-    labelAutoRotate = true,
     grid,
     ...userDefinitions
   } = options;
@@ -454,9 +460,10 @@ const LinearAxis: GCC<AxisOptions> = (options) => {
     const showGrid = inferGrid(grid, coordinate, scale);
 
     const {
-      showLabel = options.label === undefined ? true : options.label,
-      showTick = options.tick === undefined ? true : options.tick,
-      showLine = options.line === undefined ? false : options.line,
+      showLabel = useDefined(options.value, true),
+      showTick = useDefined(options.tick, true),
+      showLine = useDefined(options.line, false),
+      labelAutoRotate = useDefined(options.labelAutoRotate, true),
       ...defaultStyle
     } = inferStyle(position, direction, bbox, coordinate, scale);
 
