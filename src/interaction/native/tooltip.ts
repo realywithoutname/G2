@@ -373,7 +373,16 @@ export function Tooltip(options) {
     if (isSeries && !facet) {
       return seriesTooltip(plotArea, {
         ...rest,
-        elements: selectG2Elements,
+        elements: (root) => {
+          const elements = selectG2Elements(root);
+          // Filter non-series elements.
+          return elements.filter((element) => {
+            // @ts-ignore
+            const { __data__: data } = element;
+            const { seriesX } = data;
+            return seriesX !== undefined;
+          });
+        },
         scale,
         coordinate,
         crosshairs: maybeValue(crosshairs, defaultShowCrosshairs),

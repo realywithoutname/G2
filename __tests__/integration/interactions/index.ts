@@ -31,3 +31,4 @@ export { penguinsPointBrushY } from './penguins-point-brush-y';
 export { indicesLineChartFacetBrushShared } from './indices-line-chart-facet-brush-shared';
 export { indicesLineBrushSeries } from './indices-line-brush-series';
 export { penguinsPointBrushReverse } from './penguins-point-brush-reverse';
+export { temperaturesLinePointTooltipDiscrete } from './temperatures-line-point-tooltip-discrete';
