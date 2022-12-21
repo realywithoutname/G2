@@ -228,15 +228,20 @@ export function brush(
   root.addEventListener('pointermove', pointermove);
   root.addEventListener('pointerleave', pointerleave);
 
-  return () => {
-    if (mask) mask.remove();
-    if (background) background.remove();
-    root.removeEventListener('dragstart', dragstart);
-    root.removeEventListener('drag', drag);
-    root.removeEventListener('dragend', dragend);
-    root.removeEventListener('click', click);
-    root.removeEventListener('pointermove', pointermove);
-    root.removeEventListener('pointerleave', pointerleave);
+  return {
+    remove: () => {
+      if (mask) removeMask();
+    },
+    destroy() {
+      if (mask) mask.remove();
+      if (background) background.remove();
+      root.removeEventListener('dragstart', dragstart);
+      root.removeEventListener('drag', drag);
+      root.removeEventListener('dragend', dragend);
+      root.removeEventListener('click', click);
+      root.removeEventListener('pointermove', pointermove);
+      root.removeEventListener('pointerleave', pointerleave);
+    },
   };
 }
 
@@ -248,11 +253,18 @@ export function brushHighlight(
     brushRegion,
     extent: optionalExtent,
     reverse,
+    key = (d) => d,
     series = false,
+    siblings = [],
+    bboxOf = (root) => {
+      const { x, y, width, height } = root.style;
+      return { x, y, width, height };
+    },
     ...rest
   },
 ) {
   const elements = elementof(root);
+  const siblingElements = siblings.flatMap(elementof);
   const valueof = createValueof(elements, datum);
   const brushStyle = subObject(rest, 'mask');
   const { setState, removeState } = useState(rest, valueof);
@@ -262,7 +274,7 @@ export function brushHighlight(
     height: rootHeight,
     x: ordinalX,
     y: ordinalY,
-  } = root.getBBox();
+  } = bboxOf(root);
   const extent = optionalExtent
     ? optionalExtent
     : [0, 0, rootWidth, rootHeight];
@@ -277,9 +289,16 @@ export function brushHighlight(
     for (const element of elements) {
       removeState(element, 'highlighted', 'unhighlighted');
     }
+    for (const element of siblingElements) {
+      removeState(element, 'highlighted', 'unhighlighted');
+    }
   };
 
   const brushed = (x, y, x1, y1) => {
+    for (const sibling of siblings) {
+      sibling.brush?.remove?.();
+    }
+    const keys = new Set();
     for (const element of elements) {
       const { min, max } = element.getLocalBounds();
       const [ex, ey] = min;
@@ -288,7 +307,12 @@ export function brushHighlight(
         setState(element, 'unhighlighted');
       } else {
         setState(element, 'highlighted');
+        keys.add(key(element));
       }
+    }
+    for (const element of siblingElements) {
+      if (keys.has(key(element))) setState(element, 'highlighted');
+      else setState(element, 'unhighlighted');
     }
   };
 
@@ -324,7 +348,7 @@ export function brushHighlight(
   });
 }
 
-export function BrushHighlight({ facet, ...rest }) {
+export function BrushHighlight({ facet, class: className, key, ...rest }) {
   return (target, viewInstances) => {
     const { container, view } = target;
     const plotArea = selectPlotArea(container);
@@ -354,13 +378,20 @@ export function BrushHighlight({ facet, ...rest }) {
         ...rest,
       });
     }
-    return brushHighlight(plotArea, {
+    const siblings = viewInstances
+      .filter((d) => d.options.class === className && d !== target)
+      .map((d) => selectPlotArea(d.container));
+    const brush = brushHighlight(plotArea, {
       elements: selectG2Elements,
       datum: createDatumof(view),
       brushRegion: (x, y, x1, y1) => [x, y, x1, y1],
+      key: (element) => element.__data__.key,
       extent: undefined,
+      siblings,
       ...defaultOptions,
       ...rest,
     });
+    plotArea.brush = brush;
+    return () => plotArea.destroy();
   };
 }

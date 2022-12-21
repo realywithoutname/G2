@@ -27,7 +27,7 @@ export const Mark: CC<MarkOptions> = () => {
       data,
       coordinates,
       theme,
-      component,
+      components,
       interactions,
       x,
       y,
@@ -37,12 +37,14 @@ export const Mark: CC<MarkOptions> = () => {
       labelTransform,
       parentKey,
       clip,
+      class: className,
       ...mark
     } = options;
 
     return [
       {
         type: 'standardView',
+        class: className,
         x,
         y,
         key,
@@ -60,7 +62,7 @@ export const Mark: CC<MarkOptions> = () => {
         paddingBottom,
         theme,
         coordinates,
-        component,
+        components,
         interactions,
         frame,
         title,

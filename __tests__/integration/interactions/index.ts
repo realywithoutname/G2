@@ -23,3 +23,5 @@ export { penguinsPointBrushReverse } from './penguins-point-brush-reverse';
 export { cars3LineBrushAxis } from './cars3-line-brush-axis';
 export { cars3LineVerticalBrushAxis } from './cars3-line-vertical-brush-axis';
 export { penguinsPointBrushAxis } from './penguins-point-brush-axis';
+export { penguinsPointBrushMatrix } from './penguins-point-brush-matrix';
+export { penguinsPointBrushView } from './penguins-point-brush-view';
